@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Viewer v2</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        h1 button {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            margin-left: 10px;
+            cursor: pointer;
+            color: white;
+        }
+
+        h1 button:hover {
+            transform: scale(1.1);
+        }
+
+        .camera-box {
+            width: 500px;
+            height: 300px;
+            border-radius: 15px;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            background: black;
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .settings {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -10%);
+            width: 300px;
+            padding: 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 10;
+        }
+
+        .settings label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        .settings input,
+        .settings select {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .settings button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .settings button:hover {
+            background-color: lightgray;
+        }
+
+        .capture-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #0072ff;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .capture-button:hover {
+            background-color: #005bb5;
+        }
+
+        .qr-result {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 20;
+        }
+
+        .qr-result button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #0072ff;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .qr-result button:hover {
+            background-color: #005bb5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h6>Camera Viewer versão 2<h6>
+        <h1>
+            <span id="title">Viewer</span>
+            <button id="settings-button">⚙️</button>
+        </h1>
+
+        <div class="camera-box">
+            <video id="camera" autoplay playsinline></video>
+        </div>
+
+        <button class="capture-button" id="capture-button">📸 Take Photo</button>
+        <button class="capture-button" id="record-button">🎥 Start Recording</button>
+
+        <div class="settings" id="settings">
+            <label for="language-select" id="language-label">Language:</label>
+            <select id="language-select">
+                <option value="en">English</option>
+                <option value="pt">Português</option>
+            </select>
+
+            <label for="brightness" id="brightness-label">Brightness:</label>
+            <input type="range" id="brightness" min="0" max="100" value="50">
+
+            <label for="zoom" id="zoom-label">Zoom:</label>
+            <input type="range" id="zoom" min="1" max="5" step="0.1" value="1">
+
+            <label for="mirror" id="mirror-label">Mirror Video:</label>
+            <select id="mirror">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+
+            <label for="save-format" id="save-format-label">Save Format:</label>
+            <select id="save-format">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+                <option value="webm">WEBM</option>
+                <option value="mp4">MP4</option>
+            </select>
+
+            <label for="audio-input" id="audio-input-label">Audio Input:</label>
+            <select id="audio-input"></select>
+
+            <label for="camera-select" id="camera-select-label">Select Camera:</label>
+            <select id="camera-select"></select>
+
+            <label for="timer" id="timer-label">Photo Timer:</label>
+            <select id="timer">
+                <option value="0">0 seconds</option>
+                <option value="3">3 seconds</option>
+                <option value="5">5 seconds</option>
+                <option value="10">10 seconds</option>
+                <option value="20">20 seconds</option>
+                <option value="60">1 minute</option>
+            </select>
+
+            <button id="close-settings">Close Settings</button>
+        </div>
+
+        <div class="qr-result" id="qr-result">
+            <p id="qr-text"></p>
+            <button id="open-link">Open Link</button>
+            <button id="close-result">Close</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script>
+        const settingsButton = document.getElementById('settings-button');
+        const settings = document.getElementById('settings');
+        const closeSettingsButton = document.getElementById('close-settings');
+        const camera = document.getElementById('camera');
+        const cameraSelect = document.getElementById('camera-select');
+        const captureButton = document.getElementById('capture-button');
+        const recordButton = document.getElementById('record-button');
+        const timerSelect = document.getElementById('timer');
+        const languageSelect = document.getElementById('language-select');
+        const mirrorSelect = document.getElementById('mirror');
+        const saveFormatSelect = document.getElementById('save-format');
+        const audioInputSelect = document.getElementById('audio-input');
+        const qrResult = document.getElementById('qr-result');
+        const qrText = document.getElementById('qr-text');
+        const openLinkButton = document.getElementById('open-link');
+        const closeResultButton = document.getElementById('close-result');
+
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        const translations = {
+            en: {
+                title: "Camera Viewer",
+                brightness: "Brightness:",
+                zoom: "Zoom:",
+                selectCamera: "Select Camera:",
+                photoTimer: "Photo Timer:",
+                closeSettings: "Close Settings",
+                takePhoto: "📸 Take Photo",
+                startRecording: "🎥 Start Recording",
+                stopRecording: "⏹️ Stop Recording",
+                language: "Language:",
+                mirror: "Mirror Video:",
+                saveFormat: "Save Format:",
+                audioInput: "Audio Input:",
+                confirmDownload: "Do you want to download this file?"
+            },
+            pt: {
+                title: "Visualizador de Câmera",
+                brightness: "Brilho:",
+                zoom: "Zoom:",
+                selectCamera: "Selecionar Câmera:",
+                photoTimer: "Temporizador de Foto:",
+                closeSettings: "Fechar Configurações",
+                takePhoto: "📸 Tirar Foto",
+                startRecording: "🎥 Iniciar Gravação",
+                stopRecording: "⏹️ Parar Gravação",
+                language: "Idioma:",
+                mirror: "Espelhar Vídeo:",
+                saveFormat: "Formato de Salvamento:",
+                audioInput: "Entrada de Áudio:",
+                confirmDownload: "Você deseja baixar este arquivo?"
+            }
+        };
+
+        // Language change function
+        languageSelect.addEventListener('change', () => {
+            const selectedLanguage = languageSelect.value;
+            const texts = translations[selectedLanguage];
+
+            document.getElementById('title').textContent = texts.title;
+            document.getElementById('brightness-label').textContent = texts.brightness;
+            document.getElementById('zoom-label').textContent = texts.zoom;
+            document.getElementById('camera-select-label').textContent = texts.selectCamera;
+            document.getElementById('timer-label').textContent = texts.photoTimer;
+            closeSettingsButton.textContent = texts.closeSettings;
+            captureButton.textContent = texts.takePhoto;
+            recordButton.textContent = texts.startRecording;
+            document.getElementById('language-label').textContent = texts.language;
+            document.getElementById('mirror-label').textContent = texts.mirror;
+            document.getElementById('save-format-label').textContent = texts.saveFormat;
+            document.getElementById('audio-input-label').textContent = texts.audioInput;
+        });
+
+        // Initialize language to English
+        languageSelect.value = 'en';
+        languageSelect.dispatchEvent(new Event('change'));
+
+        // Toggle settings visibility
+        settingsButton.addEventListener('click', () => {
+            settings.style.display = settings.style.display === 'block' ? 'none' : 'block';
+        });
+
+        closeSettingsButton.addEventListener('click', () => {
+            settings.style.display = 'none';
+        });
+
+        // Check and request permissions
+        async function checkPermissions() {
+            try {
+                const cameraPermission = await navigator.permissions.query({ name: 'camera' });
+                const microphonePermission = await navigator.permissions.query({ name: 'microphone' });
+
+                if (cameraPermission.state !== 'granted' || microphonePermission.state !== 'granted') {
+                    alert('Please grant camera and microphone permissions to use this feature.');
+                    await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                }
+
+                initCamera();
+            } catch (error) {
+                console.error('Error accessing camera or microphone:', error);
+            }
+        }
+
+        // Access the camera
+        async function initCamera() {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            const audioDevices = devices.filter(device => device.kind === 'audioinput');
+
+            videoDevices.forEach((device, index) => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Camera ${index + 1}`;
+                cameraSelect.appendChild(option);
+            });
+
+            audioDevices.forEach((device, index) => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Microphone ${index + 1}`;
+                audioInputSelect.appendChild(option);
+            });
+
+            if (videoDevices.length > 0) {
+                startCamera(videoDevices[0].deviceId);
+            }
+        }
+
+        async function startCamera(deviceId) {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    deviceId: { exact: deviceId },
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: {
+                    deviceId: audioInputSelect.value ? { exact: audioInputSelect.value } : undefined,
+                    echoCancellation: true
+                }
+            });
+
+            camera.srcObject = stream;
+            const codeReader = new ZXing.BrowserQRCodeReader();
+            codeReader.decodeFromStream(stream, 'camera', (result, err) => {
+                if (result) {
+                    qrText.textContent = result.text;
+                    qrResult.style.display = 'block';
+                    openLinkButton.style.display = isValidURL(result.text) ? 'block' : 'none';
+                }
+                if (err && !(err instanceof ZXing.NotFoundException)) {
+                    console.error(err);
+                }
+            });
+        }
+
+        cameraSelect.addEventListener('change', () => {
+            startCamera(cameraSelect.value);
+        });
+
+        audioInputSelect.addEventListener('change', () => {
+            startCamera(cameraSelect.value);
+        });
+
+        // Initialize permissions check
+        checkPermissions();
+
+        // Brightness and Zoom (Simulated, real implementation depends on camera capabilities)
+        document.getElementById('brightness').addEventListener('input', (e) => {
+            camera.style.filter = `brightness(${e.target.value}%)`;
+        });
+
+        document.getElementById('zoom').addEventListener('input', (e) => {
+            camera.style.transform = `scale(${e.target.value})`;
+        });
+
+        // Mirror toggle
+        mirrorSelect.addEventListener('change', (e) => {
+            camera.style.transform = e.target.value === 'yes' ? 'scaleX(-1)' : 'scaleX(1)';
+        });
+
+        // Capture photo
+        captureButton.addEventListener('click', async () => {
+            const timerValue = parseInt(timerSelect.value, 10);
+            const saveFormat = saveFormatSelect.value;
+
+            setTimeout(() => {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = camera.videoWidth;
+                canvas.height = camera.videoHeight;
+                context.drawImage(camera, 0, 0, canvas.width, canvas.height);
+
+                const confirmDownload = confirm(translations[languageSelect.value].confirmDownload);
+
+                if (confirmDownload) {
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL(`image/${saveFormat}`);
+                    link.download = `photo.${saveFormat}`;
+                    link.click();
+                }
+            }, timerValue * 1000);
+        });
+
+        // Record video
+        recordButton.addEventListener('click', () => {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                const stream = camera.srcObject;
+                mediaRecorder = new MediaRecorder(stream, { mimeType: `video/${saveFormatSelect.value}` });
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if ( e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: `video/${saveFormatSelect.value}` });
+                    const url = URL.createObjectURL(blob);
+
+                    const confirmDownload = confirm(translations[languageSelect.value].confirmDownload);
+
+                    if (confirmDownload) {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `video.${saveFormatSelect.value}`;
+                        link.click();
+                    }
+
+                    recordedChunks = [];
+                };
+
+                mediaRecorder.start();
+                recordButton.textContent = translations[languageSelect.value].stopRecording;
+            } else {
+                mediaRecorder.stop();
+                recordButton.textContent = translations[languageSelect.value].startRecording;
+            }
+        });
+
+        // QR Code link handling
+        openLinkButton.addEventListener('click', () => {
+            const url = qrText.textContent;
+            if (isValidURL(url)) {
+                window.open(url, '_blank');
+            }
+        });
+
+        closeResultButton.addEventListener('click', () => {
+            qrResult.style.display = 'none';
+        });
+
+        function isValidURL(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+    </script>
+</body>
+
+</html>
