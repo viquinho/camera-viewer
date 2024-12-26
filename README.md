@@ -1,2 +1,1 @@
-está é uma camera atualisada a cada ano que provavelmente é mais avançaca a cada ano 
-então aproveite o máximo se tiver alguma sugestão pode manda
+ESTE CÓDIGO É COMPOSTO POR  HTML CSS E JAVA ISCRIPT DE UMA CAMERA AVANÇADA [ VIEWER ] QUE PODE SER USADA PARA GRAVAR VÍDEOS E FOTOS NA VERSÃO {  1  2  } RECONHECIMENTO DE QR CODES NA VERSÃO 2 . ATUALISADA A CADA MES COM CONTROLE DE LÍNGUEGEM PORTUGUES E INGLES
